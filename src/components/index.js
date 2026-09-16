@@ -36,6 +36,21 @@ export {
   DynamicList
 } from './cms/CMS.jsx';
 
+export {
+  RichTextEditor,
+  ContentTypeBuilder,
+  CustomFieldManager,
+  ContentRelationships,
+  PublishingWorkflow,
+  ContentRevisions,
+  BulkOperations,
+  MultiLanguageContent,
+  DynamicPageRenderer,
+  AuthorProfile,
+  CategoryArchive,
+  TagCloud
+} from './cms/ContentManagement.jsx';
+
 // E-commerce
 export {
   ecommerce,

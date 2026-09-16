@@ -1,949 +1,393 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import ReactDOM from 'react-dom/client'
-import './styles.css'
-
-const sectionTemplates = {
-  hero: {
-    type: 'hero',
-    title: 'Launch a better website',
-    subtitle: 'Design, publish, and iterate on pages faster with a modern builder built for teams.',
-    cta: 'Start building',
-    secondary: 'Book a demo',
-    accent: '#7c3aed',
-  },
-  features: {
-    type: 'features',
-    title: 'Everything you need to grow online',
-    items: [
-      { name: 'Custom pages', desc: 'Create polished landing pages with no-code speed.' },
-      { name: 'Smart blocks', desc: 'Reuse layouts and sections across every project.' },
-      { name: 'Built for SEO', desc: 'Optimize metadata, content, and structure from day one.' },
-    ],
-  },
-  pricing: {
-    type: 'pricing',
-    title: 'Simple pricing for every stage',
-    plans: [
-      { name: 'Starter', price: '$29', desc: 'For new teams and simple sites.' },
-      { name: 'Growth', price: '$79', desc: 'For businesses scaling content and campaigns.' },
-      { name: 'Scale', price: '$149', desc: 'For larger product and ecommerce operations.' },
-    ],
-  },
-  cta: {
-    type: 'cta',
-    title: 'Ready to build your next website?',
-    subtitle: 'Turn ideas into polished experiences without code headaches.',
-    cta: 'Get started',
-  },
-  text: {
-    type: 'text',
-    title: 'Your story starts here',
-    body: 'Use flexible sections and content blocks to build a website that reflects your brand and converts visitors into customers.',
-  },
-  footer: {
-    type: 'footer',
-    title: 'Northstar Studio',
-    links: ['Home', 'Work', 'Pricing', 'Contact'],
-  },
+/* Website Builder Styles */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 }
 
-const clone = (value) => JSON.parse(JSON.stringify(value))
-const makeSection = (type) => ({
-  id: `${type}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-  ...clone(sectionTemplates[type]),
-})
-
-const defaultSections = ['hero', 'features', 'pricing', 'cta', 'footer'].map((type, index) => ({
-  id: `${type}-${index}`,
-  ...clone(sectionTemplates[type]),
-}))
-
-const defaultProject = {
-  id: 'workspace-1',
-  name: 'Moonbrand Studio',
-  theme: {
-    accent: '#7c3aed',
-    background: '#f8fafc',
-    text: '#0f172a',
-    surface: '#ffffff',
-    fontFamily: 'Inter',
-    radius: 18,
-    containerWidth: 1200,
-  },
-  blocks: [
-    {
-      id: 'block-hero-1',
-      name: 'Hero - SaaS',
-      type: 'hero',
-      content: {
-        type: 'hero',
-        title: 'Launch a better website',
-        subtitle: 'Design, publish, and iterate on pages faster with a modern builder built for teams.',
-        cta: 'Start building',
-        secondary: 'Book a demo',
-        accent: '#7c3aed',
-      },
-    },
-  ],
-  pages: [
-    {
-      id: 'home',
-      title: 'Home',
-      slug: 'home',
-      seoTitle: 'Launch better digital experiences',
-      seoDescription: 'A modern website builder built to help product teams publish faster.',
-      status: 'draft',
-      sections: clone(defaultSections),
-    },
-    {
-      id: 'about',
-      title: 'About',
-      slug: 'about',
-      seoTitle: 'About our studio',
-      seoDescription: 'Learn more about the teams and ideas behind the project.',
-      status: 'draft',
-      sections: [{
-        id: 'about-1',
-        type: 'text',
-        title: 'Our story',
-        body: 'We help teams design faster, publish better, and ship smarter digital experiences.',
-      }],
-    },
-  ],
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-const normalizeProject = (value) => {
-  if (!value || typeof value !== 'object') return clone(defaultProject)
-
-  const theme = {
-    accent: value.theme?.accent || '#7c3aed',
-    background: value.theme?.background || '#f8fafc',
-    text: value.theme?.text || '#0f172a',
-    surface: value.theme?.surface || '#ffffff',
-    fontFamily: value.theme?.fontFamily || 'Inter',
-    radius: Number(value.theme?.radius) || 18,
-    containerWidth: Number(value.theme?.containerWidth) || 1200,
-  }
-
-  const pages = Array.isArray(value.pages) && value.pages.length
-    ? value.pages.map((page, index) => ({
-        id: page.id || `page-${index}`,
-        title: page.title || `Page ${index + 1}`,
-        slug: page.slug || page.title?.toLowerCase().replace(/\s+/g, '-') || `page-${index + 1}`,
-        seoTitle: page.seoTitle || page.title || `Page ${index + 1}`,
-        seoDescription: page.seoDescription || '',
-        status: page.status || 'draft',
-        sections: Array.isArray(page.sections) && page.sections.length
-          ? page.sections.map((section, sectionIndex) => ({
-              id: section.id || `${section.type || 'section'}-${sectionIndex}`,
-              ...section,
-            }))
-          : [makeSection('text')],
-      }))
-    : [{
-        id: 'home',
-        title: 'Home',
-        slug: 'home',
-        seoTitle: 'Launch better digital experiences',
-        seoDescription: 'A modern website builder built to help product teams publish faster.',
-        status: 'draft',
-        sections: clone(defaultSections),
-      }]
-
-  const blocks = Array.isArray(value.blocks) && value.blocks.length
-    ? value.blocks.map((block, index) => ({
-        id: block.id || `block-${index}`,
-        name: block.name || `Block ${index + 1}`,
-        type: block.type || 'text',
-        content: block.content || { type: 'text', title: 'Saved block' },
-      }))
-    : clone(defaultProject.blocks)
-
-  return {
-    id: value.id || 'workspace-1',
-    name: value.name || 'Moonbrand Studio',
-    theme,
-    blocks,
-    pages,
-  }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  line-height: 1.5;
 }
 
-const readProject = () => {
-  if (typeof window === 'undefined') return clone(defaultProject)
-
-  try {
-    const stored = window.localStorage.getItem('website-builder-project')
-    if (stored) return normalizeProject(JSON.parse(stored))
-
-    const legacy = window.localStorage.getItem('website-builder-sections')
-    if (legacy) return normalizeProject(JSON.parse(legacy))
-  } catch {
-    // ignore invalid storage and fall back to defaults
-  }
-
-  return clone(defaultProject)
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
-function SectionRenderer({ section, accent }) {
-  if (section.type === 'hero') {
-    return (
-      <section className="page-section hero-section" style={{ background: `linear-gradient(135deg, ${accent || '#7c3aed'}22, #ffffff)` }}>
-        <div className="hero-copy">
-          <span className="eyebrow">Website builder</span>
-          <h1>{section.title}</h1>
-          <p>{section.subtitle}</p>
-          <div className="hero-actions">
-            <button className="primary-btn">{section.cta}</button>
-            <button className="secondary-btn">{section.secondary}</button>
-          </div>
-        </div>
-        <div className="hero-card">
-          <div className="mini-window">
-            <div className="window-header"><span /><span /><span /></div>
-            <div className="content-lines"><b style={{ background: accent || '#7c3aed' }} /><b /><b /><b /></div>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  if (section.type === 'features') {
-    return (
-      <section className="page-section">
-        <div className="section-header">
-          <span className="eyebrow">Features</span>
-          <h2>{section.title}</h2>
-        </div>
-        <div className="feature-grid">
-          {(section.items || []).map((item) => (
-            <div className="feature-card" key={`${item.name}-${item.desc}`}>
-              <div className="icon-dot" />
-              <h3>{item.name}</h3>
-              <p>{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  if (section.type === 'pricing') {
-    return (
-      <section className="page-section">
-        <div className="section-header">
-          <span className="eyebrow">Pricing</span>
-          <h2>{section.title}</h2>
-        </div>
-        <div className="pricing-grid">
-          {(section.plans || []).map((plan) => (
-            <div className="pricing-card" key={`${plan.name}-${plan.price}`}>
-              <h3>{plan.name}</h3>
-              <div className="price">{plan.price}<span>/mo</span></div>
-              <p>{plan.desc}</p>
-              <button className="primary-btn small">Choose</button>
-            </div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  if (section.type === 'cta') {
-    return (
-      <section className="page-section">
-        <div className="cta-box">
-          <h2>{section.title}</h2>
-          <p>{section.subtitle}</p>
-          <button className="primary-btn">{section.cta}</button>
-        </div>
-      </section>
-    )
-  }
-
-  if (section.type === 'text') {
-    return (
-      <section className="page-section text-section">
-        <span className="eyebrow">Content block</span>
-        <h2>{section.title}</h2>
-        <p>{section.body}</p>
-      </section>
-    )
-  }
-
-  return (
-    <footer className="page-footer">
-      <strong>{section.title}</strong>
-      <nav>
-        {(section.links || []).map((link) => <a href="#" key={link}>{link}</a>)}
-      </nav>
-    </footer>
-  )
+/* Sidebar */
+.sidebar {
+  width: 280px;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
-function App() {
-  const [project, setProject] = useState(() => readProject())
-  const [activePageId, setActivePageId] = useState('')
-  const [activeSectionId, setActiveSectionId] = useState('')
-  const [viewport, setViewport] = useState('desktop')
-  const [draggedId, setDraggedId] = useState(null)
-  const [history, setHistory] = useState([])
-  const [future, setFuture] = useState([])
-  const [notice, setNotice] = useState('All changes saved locally')
-
-  useEffect(() => {
-    if (!project.pages.length) {
-      const fallback = clone(defaultProject)
-      setProject(fallback)
-      setActivePageId(fallback.pages[0].id)
-      setActiveSectionId(fallback.pages[0].sections[0].id)
-      return
-    }
-
-    if (!activePageId || !project.pages.some((page) => page.id === activePageId)) {
-      setActivePageId(project.pages[0].id)
-    }
-  }, [project, activePageId])
-
-  const activePage = useMemo(
-    () => project.pages.find((page) => page.id === activePageId) || project.pages[0],
-    [project.pages, activePageId],
-  )
-
-  useEffect(() => {
-    if (!activePage) return
-    if (!activePage.sections.some((section) => section.id === activeSectionId)) {
-      setActiveSectionId(activePage.sections[0]?.id || '')
-    }
-  }, [activePage, activeSectionId])
-
-  const activeSection = useMemo(
-    () => activePage?.sections.find((section) => section.id === activeSectionId) || activePage?.sections[0],
-    [activePage, activeSectionId],
-  )
-
-  const projectJson = useMemo(() => JSON.stringify(project, null, 2), [project])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('website-builder-project', JSON.stringify(project))
-    }
-  }, [project])
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') {
-        event.preventDefault()
-        event.shiftKey ? redo() : undo()
-      }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
-        event.preventDefault()
-        saveProject()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  })
-
-  const updateProjectWithHistory = (nextProject, msg) => {
-    setHistory((items) => [...items.slice(-29), clone(project)])
-    setFuture([])
-    setProject(nextProject)
-    setNotice(msg)
-  }
-
-  const updateActivePage = (updater, msg = 'Updated page') => {
-    if (!activePage) return
-    const nextProject = {
-      ...project,
-      pages: project.pages.map((page) => page.id === activePage.id ? updater(page) : page),
-    }
-    updateProjectWithHistory(nextProject, msg)
-  }
-
-  const addSectionToActivePage = (section) => {
-    if (!activePage) return
-    updateActivePage((page) => ({ ...page, sections: [...page.sections, section] }), 'Section added')
-    setActiveSectionId(section.id)
-  }
-
-  const addSection = (type) => {
-    const newSection = makeSection(type)
-    addSectionToActivePage(newSection)
-  }
-
-  const removeSection = () => {
-    if (!activePage || activePage.sections.length <= 1) return
-    const nextSections = activePage.sections.filter((section) => section.id !== activeSectionId)
-    updateActivePage((page) => ({ ...page, sections: nextSections }), 'Section removed')
-    setActiveSectionId(nextSections[0]?.id || '')
-  }
-
-  const reorderSections = (fromId, toId) => {
-    if (!activePage || !fromId || !toId || fromId === toId) return
-
-    const nextProject = {
-      ...project,
-      pages: project.pages.map((page) => {
-        if (page.id !== activePage.id) return page
-        const items = [...page.sections]
-        const fromIndex = items.findIndex((section) => section.id === fromId)
-        const toIndex = items.findIndex((section) => section.id === toId)
-        if (fromIndex === -1 || toIndex === -1) return page
-        const [moved] = items.splice(fromIndex, 1)
-        items.splice(toIndex, 0, moved)
-        return { ...page, sections: items }
-      }),
-    }
-
-    updateProjectWithHistory(nextProject, 'Section order updated')
-  }
-
-  const addPage = () => {
-    const newPage = {
-      id: `page-${Date.now()}`,
-      title: `Page ${project.pages.length + 1}`,
-      slug: `page-${project.pages.length + 1}`,
-      seoTitle: `Page ${project.pages.length + 1}`,
-      seoDescription: '',
-      status: 'draft',
-      sections: [makeSection('text')],
-    }
-
-    const nextProject = {
-      ...project,
-      pages: [...project.pages, newPage],
-    }
-
-    updateProjectWithHistory(nextProject, 'New page created')
-    setActivePageId(newPage.id)
-    setActiveSectionId(newPage.sections[0].id)
-  }
-
-  const updatePageField = (field, value) => {
-    updateActivePage((page) => ({ ...page, [field]: value || '' }), 'Page updated')
-  }
-
-  const updateThemeField = (field, value) => {
-    setHistory((items) => [...items.slice(-29), clone(project)])
-    setFuture([])
-    setProject((prev) => ({ ...prev, theme: { ...prev.theme, [field]: value } }))
-    setNotice('Theme updated')
-  }
-
-  const updateActiveSection = (changes) => {
-    if (!activePage) return
-    const nextProject = {
-      ...project,
-      pages: project.pages.map((page) => {
-        if (page.id !== activePage.id) return page
-        return {
-          ...page,
-          sections: page.sections.map((section) =>
-            section.id === activeSectionId ? { ...section, ...changes } : section,
-          ),
-        }
-      }),
-    }
-    updateProjectWithHistory(nextProject, 'Section updated')
-  }
-
-  const updateFeatureItem = (index, field, value) => {
-    if (activeSection?.type !== 'features') return
-    const nextItems = activeSection.items.map((item, itemIndex) =>
-      itemIndex === index ? { ...item, [field]: value } : item,
-    )
-    updateActiveSection({ items: nextItems })
-  }
-
-  const updatePlanItem = (index, field, value) => {
-    if (activeSection?.type !== 'pricing') return
-    const nextPlans = activeSection.plans.map((item, itemIndex) =>
-      itemIndex === index ? { ...item, [field]: value } : item,
-    )
-    updateActiveSection({ plans: nextPlans })
-  }
-
-  const saveSelectedSectionAsBlock = () => {
-    if (!activeSection) return
-
-    const block = {
-      id: `block-${Date.now()}`,
-      name: `${activeSection.type} block`,
-      type: activeSection.type,
-      content: clone(activeSection),
-    }
-
-    const nextProject = {
-      ...project,
-      blocks: [...project.blocks, block],
-    }
-
-    updateProjectWithHistory(nextProject, 'Block saved')
-  }
-
-  const undo = () => {
-    if (!history.length) return
-    const previous = history[history.length - 1]
-    setFuture((items) => [clone(project), ...items])
-    setProject(previous)
-    setHistory((items) => items.slice(0, -1))
-    setNotice('Undid last change')
-  }
-
-  const redo = () => {
-    if (!future.length) return
-    const next = future[0]
-    setHistory((items) => [...items, clone(project)])
-    setProject(next)
-    setFuture((items) => items.slice(1))
-    setNotice('Redid change')
-  }
-
-  const saveProject = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('website-builder-project', JSON.stringify(project))
-      setNotice('Project saved locally')
-    }
-  }
-
-  const exportProject = () => {
-    const blob = new Blob([projectJson], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'website-builder-project.json'
-    link.click()
-    URL.revokeObjectURL(url)
-    setNotice('Project exported')
-  }
-
-  const importProject = (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(String(reader.result))
-        const nextProject = normalizeProject(parsed)
-        updateProjectWithHistory(nextProject, 'Project imported')
-        setActivePageId(nextProject.pages[0]?.id || '')
-        setActiveSectionId(nextProject.pages[0]?.sections[0]?.id || '')
-      } catch {
-        setNotice('Invalid project file')
-      }
-    }
-    reader.readAsText(file)
-    event.target.value = ''
-  }
-
-  const resetProject = () => {
-    const starter = clone(defaultProject)
-    updateProjectWithHistory(starter, 'Starter template restored')
-    setActivePageId(starter.pages[0].id)
-    setActiveSectionId(starter.pages[0].sections[0].id)
-  }
-
-  return (
-    <div className="app-shell">
-      <aside className="sidebar left-sidebar">
-        <div>
-          <div className="brand">
-            <div className="brand-mark">W</div>
-            <div>
-              <strong>{project.name}</strong>
-              <small>Design studio</small>
-            </div>
-          </div>
-
-          <div className="panel-block">
-            <h3>Pages</h3>
-            <div className="page-tabs">
-              {project.pages.map((page) => (
-                <button
-                  key={page.id}
-                  className={page.id === activePageId ? 'page-tab active' : 'page-tab'}
-                  onClick={() => setActivePageId(page.id)}
-                >
-                  {page.title}
-                </button>
-              ))}
-              <button className="component-button" onClick={addPage}>+ New page</button>
-            </div>
-          </div>
-
-          <div className="panel-block">
-            <h3>Components</h3>
-            <div className="component-list">
-              {Object.keys(sectionTemplates).map((type) => (
-                <button className="component-button" key={type} onClick={() => addSection(type)}>
-                  + {type}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="panel-block">
-            <h3>Blocks</h3>
-            <div className="component-list">
-              {project.blocks.map((block) => (
-                <button
-                  key={block.id}
-                  className="component-button"
-                  onClick={() => {
-                    const nextSection = {
-                      id: `${block.type}-${Date.now()}`,
-                      ...clone(block.content),
-                    }
-                    addSectionToActivePage(nextSection)
-                  }}
-                >
-                  + {block.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="panel-block project-tools">
-            <h3>Project</h3>
-            <button className="component-button" onClick={resetProject}>↻ Reset template</button>
-            <button className="component-button" onClick={exportProject}>↓ Export JSON</button>
-            <label className="component-button file-button">
-              ↑ Import JSON
-              <input type="file" accept="application/json" onChange={importProject} />
-            </label>
-          </div>
-        </div>
-
-        <div className="panel-block">
-          <h3>Structure</h3>
-          <div className="section-list">
-            {activePage?.sections.map((section) => (
-              <button
-                key={section.id}
-                draggable
-                onDragStart={(event) => {
-                  event.dataTransfer.effectAllowed = 'move'
-                  setDraggedId(section.id)
-                }}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault()
-                  if (draggedId) {
-                    reorderSections(draggedId, section.id)
-                    setDraggedId(null)
-                  }
-                }}
-                className={`section-item ${section.id === activeSectionId ? 'active' : ''}`}
-                onClick={() => setActiveSectionId(section.id)}
-              >
-                <span className="dot" />
-                {section.type}
-              </button>
-            ))}
-          </div>
-        </div>
-      </aside>
-
-      <main className="builder-main">
-        <header className="topbar">
-          <div className="topbar-left">
-            <span className="status-pill">● {notice}</span>
-            <button className="history-btn" disabled={!history.length} onClick={undo} title="Undo (Ctrl/Cmd+Z)">↶</button>
-            <button className="history-btn" disabled={!future.length} onClick={redo} title="Redo (Ctrl/Cmd+Shift+Z)">↷</button>
-          </div>
-
-          <div className="viewport-controls">
-            {['desktop', 'tablet', 'mobile'].map((mode) => (
-              <button
-                key={mode}
-                className={viewport === mode ? 'active' : ''}
-                onClick={() => setViewport(mode)}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
-
-          <button className="primary-btn small" onClick={saveProject}>Save</button>
-        </header>
-
-        <div className={`canvas ${viewport}`}>
-          <div
-            className="canvas-inner"
-            style={{
-              background: project.theme.background,
-              maxWidth: `${project.theme.containerWidth}px`,
-              borderRadius: `${project.theme.radius}px`,
-            }}
-          >
-            {activePage?.sections.map((section) => (
-              <div
-                key={section.id}
-                draggable
-                onDragStart={(event) => {
-                  event.dataTransfer.effectAllowed = 'move'
-                  setDraggedId(section.id)
-                }}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault()
-                  if (draggedId) {
-                    reorderSections(draggedId, section.id)
-                    setDraggedId(null)
-                  }
-                }}
-                className={section.id === activeSectionId ? 'selected-section' : ''}
-                onClick={() => setActiveSectionId(section.id)}
-              >
-                <SectionRenderer section={section} accent={project.theme.accent} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      <aside className="sidebar right-sidebar">
-        <div className="panel-block">
-          <h3>Inspector <span className="muted">/{activePage?.title || 'Page'}</span></h3>
-
-          {activePage && (
-            <div className="inspector-form">
-              <div className="panel-subsection">
-                <h4>Page settings</h4>
-                <label>
-                  Page name
-                  <input value={activePage.title} onChange={(event) => updatePageField('title', event.target.value)} />
-                </label>
-                <label>
-                  Slug
-                  <input value={activePage.slug || ''} onChange={(event) => updatePageField('slug', event.target.value)} />
-                </label>
-                <label>
-                  SEO title
-                  <input value={activePage.seoTitle || ''} onChange={(event) => updatePageField('seoTitle', event.target.value)} />
-                </label>
-                <label>
-                  SEO description
-                  <textarea rows="3" value={activePage.seoDescription || ''} onChange={(event) => updatePageField('seoDescription', event.target.value)} />
-                </label>
-                <label>
-                  Status
-                  <select value={activePage.status || 'draft'} onChange={(event) => updatePageField('status', event.target.value)}>
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                  </select>
-                </label>
-              </div>
-
-              <div className="panel-subsection">
-                <h4>Theme</h4>
-                <label>
-                  Accent color
-                  <input type="color" value={project.theme.accent} onChange={(event) => updateThemeField('accent', event.target.value)} />
-                </label>
-                <label>
-                  Background
-                  <input type="color" value={project.theme.background} onChange={(event) => updateThemeField('background', event.target.value)} />
-                </label>
-                <label>
-                  Text color
-                  <input type="color" value={project.theme.text} onChange={(event) => updateThemeField('text', event.target.value)} />
-                </label>
-                <label>
-                  Surface color
-                  <input type="color" value={project.theme.surface} onChange={(event) => updateThemeField('surface', event.target.value)} />
-                </label>
-                <label>
-                  Radius: {project.theme.radius}px
-                  <input
-                    type="range"
-                    min="0"
-                    max="40"
-                    value={project.theme.radius}
-                    onChange={(event) => updateThemeField('radius', Number(event.target.value))}
-                  />
-                </label>
-                <label>
-                  Container width: {project.theme.containerWidth}px
-                  <input
-                    type="range"
-                    min="700"
-                    max="1400"
-                    step="20"
-                    value={project.theme.containerWidth}
-                    onChange={(event) => updateThemeField('containerWidth', Number(event.target.value))}
-                  />
-                </label>
-              </div>
-
-              {activeSection && (
-                <div className="panel-subsection">
-                  <h4>Section</h4>
-                  <label>
-                    Title
-                    <input
-                      value={activeSection.title || ''}
-                      onChange={(event) => updateActiveSection({ title: event.target.value })}
-                    />
-                  </label>
-
-                  {['hero', 'cta'].includes(activeSection.type) && (
-                    <label>
-                      Subtitle
-                      <textarea
-                        rows="3"
-                        value={activeSection.subtitle || ''}
-                        onChange={(event) => updateActiveSection({ subtitle: event.target.value })}
-                      />
-                    </label>
-                  )}
-
-                  {activeSection.type === 'text' && (
-                    <label>
-                      Body
-                      <textarea
-                        rows="5"
-                        value={activeSection.body || ''}
-                        onChange={(event) => updateActiveSection({ body: event.target.value })}
-                      />
-                    </label>
-                  )}
-
-                  {activeSection.type === 'hero' && (
-                    <label>
-                      CTA text
-                      <input
-                        value={activeSection.cta || ''}
-                        onChange={(event) => updateActiveSection({ cta: event.target.value })}
-                      />
-                    </label>
-                  )}
-
-                  {activeSection.type === 'features' && (
-                    <>
-                      <div className="editor-stack">
-                        {(activeSection.items || []).map((item, index) => (
-                          <div className="mini-editor" key={`${item.name}-${index}`}>
-                            <label>
-                              Feature {index + 1} name
-                              <input
-                                value={item.name}
-                                onChange={(event) => updateFeatureItem(index, 'name', event.target.value)}
-                              />
-                            </label>
-                            <label>
-                              Description
-                              <textarea
-                                rows="2"
-                                value={item.desc}
-                                onChange={(event) => updateFeatureItem(index, 'desc', event.target.value)}
-                              />
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="editor-actions">
-                        <button
-                          className="secondary-btn"
-                          type="button"
-                          onClick={() =>
-                            updateActiveSection({
-                              items: [...(activeSection.items || []), { name: `Feature ${(activeSection.items || []).length + 1}`, desc: 'Describe this feature for your visitors.' }],
-                            })
-                          }
-                        >
-                          Add feature
-                        </button>
-                        <button
-                          className="danger-btn"
-                          type="button"
-                          onClick={() => updateActiveSection({ items: (activeSection.items || []).slice(0, -1) })}
-                        >
-                          Remove last
-                        </button>
-                      </div>
-                    </>
-                  )}
-
-                  {activeSection.type === 'pricing' && (
-                    <>
-                      <div className="editor-stack">
-                        {(activeSection.plans || []).map((plan, index) => (
-                          <div className="mini-editor" key={`${plan.name}-${index}`}>
-                            <label>
-                              Plan {index + 1} name
-                              <input
-                                value={plan.name}
-                                onChange={(event) => updatePlanItem(index, 'name', event.target.value)}
-                              />
-                            </label>
-                            <label>
-                              Price
-                              <input
-                                value={plan.price}
-                                onChange={(event) => updatePlanItem(index, 'price', event.target.value)}
-                              />
-                            </label>
-                            <label>
-                              Description
-                              <textarea
-                                rows="2"
-                                value={plan.desc}
-                                onChange={(event) => updatePlanItem(index, 'desc', event.target.value)}
-                              />
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="editor-actions">
-                        <button
-                          className="secondary-btn"
-                          type="button"
-                          onClick={() =>
-                            updateActiveSection({
-                              plans: [...(activeSection.plans || []), { name: `Plan ${(activeSection.plans || []).length + 1}`, price: '$99', desc: 'Add a description for this plan.' }],
-                            })
-                          }
-                        >
-                          Add plan
-                        </button>
-                        <button
-                          className="danger-btn"
-                          type="button"
-                          onClick={() => updateActiveSection({ plans: (activeSection.plans || []).slice(0, -1) })}
-                        >
-                          Remove last
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-
-              <button className="secondary-btn" type="button" onClick={saveSelectedSectionAsBlock}>
-                Save as block
-              </button>
-
-              <button className="danger-btn" type="button" onClick={removeSection}>
-                Remove section
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="panel-block">
-          <h3>Generated JSON</h3>
-          <pre className="code-block">{projectJson}</pre>
-        </div>
-      </aside>
-    </div>
-  )
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
+.sidebar-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-section h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.element-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.element-btn {
+  padding: 12px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.element-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* Canvas */
+.canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.canvas-toolbar {
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.canvas-viewport {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background: var(--bg-tertiary);
+}
+
+.canvas-frame {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  min-height: 800px;
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* Inspector */
+.inspector-panel {
+  width: 320px;
+  background: var(--bg-primary);
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.inspector-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.tab-btn {
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  color: white;
+}
+
+.editor-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.editor-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.editor-field input,
+.editor-field textarea,
+.editor-field select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--bg-secondary);
+}
+
+.editor-field input:focus,
+.editor-field textarea:focus,
+.editor-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.primary-btn {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primary-btn:hover {
+  background: var(--accent-hover);
+}
+
+.danger-btn {
+  padding: 10px 16px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Sections */
+.section-wrapper {
+  position: relative;
+  padding: 40px 24px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.section-wrapper:hover {
+  border-color: var(--accent);
+}
+
+.section-wrapper.active {
+  border-color: var(--accent);
+  background: rgba(124, 58, 237, 0.02);
+}
+
+.hero-section {
+  text-align: center;
+  padding: 80px 24px;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+.hero-section h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.hero-section p {
+  font-size: 20px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.features-section {
+  padding: 60px 24px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.feature-card {
+  padding: 24px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+}
+
+.feature-card h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.pricing-section {
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.pricing-card {
+  padding: 32px 24px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.pricing-card h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.pricing-card .price {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.cta-section {
+  padding: 60px 24px;
+  text-align: center;
+  background: var(--accent);
+  color: white;
+}
+
+.cta-section h2 {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.text-section {
+  padding: 40px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.text-section h2 {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.text-section p {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.footer-section {
+  padding: 40px 24px;
+  background: var(--text-primary);
+  color: white;
+  text-align: center;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .sidebar,
+  .inspector-panel {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+  }
+  
+  .canvas-viewport {
+    padding: 12px;
+  }
+}

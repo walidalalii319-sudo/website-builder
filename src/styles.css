@@ -64,16 +64,44 @@ const defaultProject = {
   theme: {
     accent: '#7c3aed',
     background: '#f8fafc',
+    text: '#0f172a',
+    surface: '#ffffff',
+    fontFamily: 'Inter',
+    radius: 18,
+    containerWidth: 1200,
   },
+  blocks: [
+    {
+      id: 'block-hero-1',
+      name: 'Hero - SaaS',
+      type: 'hero',
+      content: {
+        type: 'hero',
+        title: 'Launch a better website',
+        subtitle: 'Design, publish, and iterate on pages faster with a modern builder built for teams.',
+        cta: 'Start building',
+        secondary: 'Book a demo',
+        accent: '#7c3aed',
+      },
+    },
+  ],
   pages: [
     {
       id: 'home',
       title: 'Home',
+      slug: 'home',
+      seoTitle: 'Launch better digital experiences',
+      seoDescription: 'A modern website builder built to help product teams publish faster.',
+      status: 'draft',
       sections: clone(defaultSections),
     },
     {
       id: 'about',
       title: 'About',
+      slug: 'about',
+      seoTitle: 'About our studio',
+      seoDescription: 'Learn more about the teams and ideas behind the project.',
+      status: 'draft',
       sections: [{
         id: 'about-1',
         type: 'text',
@@ -87,24 +115,24 @@ const defaultProject = {
 const normalizeProject = (value) => {
   if (!value || typeof value !== 'object') return clone(defaultProject)
 
-  if (Array.isArray(value)) {
-    return {
-      ...clone(defaultProject),
-      pages: [{
-        id: 'home',
-        title: 'Home',
-        sections: value.map((section, index) => ({
-          id: section.id || `${section.type || 'section'}-${index}`,
-          ...section,
-        })),
-      }],
-    }
+  const theme = {
+    accent: value.theme?.accent || '#7c3aed',
+    background: value.theme?.background || '#f8fafc',
+    text: value.theme?.text || '#0f172a',
+    surface: value.theme?.surface || '#ffffff',
+    fontFamily: value.theme?.fontFamily || 'Inter',
+    radius: Number(value.theme?.radius) || 18,
+    containerWidth: Number(value.theme?.containerWidth) || 1200,
   }
 
   const pages = Array.isArray(value.pages) && value.pages.length
     ? value.pages.map((page, index) => ({
         id: page.id || `page-${index}`,
         title: page.title || `Page ${index + 1}`,
+        slug: page.slug || page.title?.toLowerCase().replace(/\s+/g, '-') || `page-${index + 1}`,
+        seoTitle: page.seoTitle || page.title || `Page ${index + 1}`,
+        seoDescription: page.seoDescription || '',
+        status: page.status || 'draft',
         sections: Array.isArray(page.sections) && page.sections.length
           ? page.sections.map((section, sectionIndex) => ({
               id: section.id || `${section.type || 'section'}-${sectionIndex}`,
@@ -115,16 +143,27 @@ const normalizeProject = (value) => {
     : [{
         id: 'home',
         title: 'Home',
+        slug: 'home',
+        seoTitle: 'Launch better digital experiences',
+        seoDescription: 'A modern website builder built to help product teams publish faster.',
+        status: 'draft',
         sections: clone(defaultSections),
       }]
+
+  const blocks = Array.isArray(value.blocks) && value.blocks.length
+    ? value.blocks.map((block, index) => ({
+        id: block.id || `block-${index}`,
+        name: block.name || `Block ${index + 1}`,
+        type: block.type || 'text',
+        content: block.content || { type: 'text', title: 'Saved block' },
+      }))
+    : clone(defaultProject.blocks)
 
   return {
     id: value.id || 'workspace-1',
     name: value.name || 'Moonbrand Studio',
-    theme: {
-      accent: value.theme?.accent || '#7c3aed',
-      background: value.theme?.background || '#f8fafc',
-    },
+    theme,
+    blocks,
     pages,
   }
 }
@@ -139,7 +178,7 @@ const readProject = () => {
     const legacy = window.localStorage.getItem('website-builder-sections')
     if (legacy) return normalizeProject(JSON.parse(legacy))
   } catch {
-    // ignore invalid local storage and fall back to defaults
+    // ignore invalid storage and fall back to defaults
   }
 
   return clone(defaultProject)
@@ -253,11 +292,14 @@ function App() {
 
   useEffect(() => {
     if (!project.pages.length) {
-      setProject((prev) => ({ ...prev, pages: [{ id: 'home', title: 'Home', sections: [makeSection('text')] }] }))
+      const fallback = clone(defaultProject)
+      setProject(fallback)
+      setActivePageId(fallback.pages[0].id)
+      setActiveSectionId(fallback.pages[0].sections[0].id)
       return
     }
 
-    if (!project.pages.some((page) => page.id === activePageId)) {
+    if (!activePageId || !project.pages.some((page) => page.id === activePageId)) {
       setActivePageId(project.pages[0].id)
     }
   }, [project, activePageId])
@@ -319,13 +361,15 @@ function App() {
     updateProjectWithHistory(nextProject, msg)
   }
 
+  const addSectionToActivePage = (section) => {
+    if (!activePage) return
+    updateActivePage((page) => ({ ...page, sections: [...page.sections, section] }), 'Section added')
+    setActiveSectionId(section.id)
+  }
+
   const addSection = (type) => {
     const newSection = makeSection(type)
-    updateActivePage((page) => ({
-      ...page,
-      sections: [...page.sections, newSection],
-    }), 'Section added')
-    setActiveSectionId(newSection.id)
+    addSectionToActivePage(newSection)
   }
 
   const removeSection = () => {
@@ -359,6 +403,10 @@ function App() {
     const newPage = {
       id: `page-${Date.now()}`,
       title: `Page ${project.pages.length + 1}`,
+      slug: `page-${project.pages.length + 1}`,
+      seoTitle: `Page ${project.pages.length + 1}`,
+      seoDescription: '',
+      status: 'draft',
       sections: [makeSection('text')],
     }
 
@@ -372,15 +420,14 @@ function App() {
     setActiveSectionId(newPage.sections[0].id)
   }
 
-  const updatePageTitle = (value) => {
-    if (!activePage) return
-    updateActivePage((page) => ({ ...page, title: value || 'Untitled page' }), 'Page renamed')
+  const updatePageField = (field, value) => {
+    updateActivePage((page) => ({ ...page, [field]: value || '' }), 'Page updated')
   }
 
-  const updateTheme = (changes) => {
+  const updateThemeField = (field, value) => {
     setHistory((items) => [...items.slice(-29), clone(project)])
     setFuture([])
-    setProject((prev) => ({ ...prev, theme: { ...prev.theme, ...changes } }))
+    setProject((prev) => ({ ...prev, theme: { ...prev.theme, [field]: value } }))
     setNotice('Theme updated')
   }
 
@@ -415,6 +462,24 @@ function App() {
       itemIndex === index ? { ...item, [field]: value } : item,
     )
     updateActiveSection({ plans: nextPlans })
+  }
+
+  const saveSelectedSectionAsBlock = () => {
+    if (!activeSection) return
+
+    const block = {
+      id: `block-${Date.now()}`,
+      name: `${activeSection.type} block`,
+      type: activeSection.type,
+      content: clone(activeSection),
+    }
+
+    const nextProject = {
+      ...project,
+      blocks: [...project.blocks, block],
+    }
+
+    updateProjectWithHistory(nextProject, 'Block saved')
   }
 
   const undo = () => {
@@ -461,8 +526,7 @@ function App() {
     reader.onload = () => {
       try {
         const parsed = JSON.parse(String(reader.result))
-        const normalized = normalizeProject(parsed)
-        const nextProject = { ...normalized, pages: normalized.pages }
+        const nextProject = normalizeProject(parsed)
         updateProjectWithHistory(nextProject, 'Project imported')
         setActivePageId(nextProject.pages[0]?.id || '')
         setActiveSectionId(nextProject.pages[0]?.sections[0]?.id || '')
@@ -472,6 +536,13 @@ function App() {
     }
     reader.readAsText(file)
     event.target.value = ''
+  }
+
+  const resetProject = () => {
+    const starter = clone(defaultProject)
+    updateProjectWithHistory(starter, 'Starter template restored')
+    setActivePageId(starter.pages[0].id)
+    setActiveSectionId(starter.pages[0].sections[0].id)
   }
 
   return (
@@ -513,9 +584,30 @@ function App() {
             </div>
           </div>
 
+          <div className="panel-block">
+            <h3>Blocks</h3>
+            <div className="component-list">
+              {project.blocks.map((block) => (
+                <button
+                  key={block.id}
+                  className="component-button"
+                  onClick={() => {
+                    const nextSection = {
+                      id: `${block.type}-${Date.now()}`,
+                      ...clone(block.content),
+                    }
+                    addSectionToActivePage(nextSection)
+                  }}
+                >
+                  + {block.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="panel-block project-tools">
             <h3>Project</h3>
-            <button className="component-button" onClick={() => updateProjectWithHistory(clone(defaultProject), 'Starter template restored')}>↻ Reset template</button>
+            <button className="component-button" onClick={resetProject}>↻ Reset template</button>
             <button className="component-button" onClick={exportProject}>↓ Export JSON</button>
             <label className="component-button file-button">
               ↑ Import JSON
@@ -578,7 +670,14 @@ function App() {
         </header>
 
         <div className={`canvas ${viewport}`}>
-          <div className="canvas-inner" style={{ background: project.theme.background }}>
+          <div
+            className="canvas-inner"
+            style={{
+              background: project.theme.background,
+              maxWidth: `${project.theme.containerWidth}px`,
+              borderRadius: `${project.theme.radius}px`,
+            }}
+          >
             {activePage?.sections.map((section) => (
               <div
                 key={section.id}
@@ -607,26 +706,81 @@ function App() {
 
       <aside className="sidebar right-sidebar">
         <div className="panel-block">
-          <h3>Inspector <span className="muted">/{activeSection?.type || activePage?.title}</span></h3>
+          <h3>Inspector <span className="muted">/{activePage?.title || 'Page'}</span></h3>
 
           {activePage && (
             <div className="inspector-form">
-              <label>
-                Page name
-                <input value={activePage.title} onChange={(event) => updatePageTitle(event.target.value)} />
-              </label>
+              <div className="panel-subsection">
+                <h4>Page settings</h4>
+                <label>
+                  Page name
+                  <input value={activePage.title} onChange={(event) => updatePageField('title', event.target.value)} />
+                </label>
+                <label>
+                  Slug
+                  <input value={activePage.slug || ''} onChange={(event) => updatePageField('slug', event.target.value)} />
+                </label>
+                <label>
+                  SEO title
+                  <input value={activePage.seoTitle || ''} onChange={(event) => updatePageField('seoTitle', event.target.value)} />
+                </label>
+                <label>
+                  SEO description
+                  <textarea rows="3" value={activePage.seoDescription || ''} onChange={(event) => updatePageField('seoDescription', event.target.value)} />
+                </label>
+                <label>
+                  Status
+                  <select value={activePage.status || 'draft'} onChange={(event) => updatePageField('status', event.target.value)}>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                  </select>
+                </label>
+              </div>
 
-              <label>
-                Accent color
-                <input
-                  type="color"
-                  value={project.theme.accent}
-                  onChange={(event) => updateTheme({ accent: event.target.value })}
-                />
-              </label>
+              <div className="panel-subsection">
+                <h4>Theme</h4>
+                <label>
+                  Accent color
+                  <input type="color" value={project.theme.accent} onChange={(event) => updateThemeField('accent', event.target.value)} />
+                </label>
+                <label>
+                  Background
+                  <input type="color" value={project.theme.background} onChange={(event) => updateThemeField('background', event.target.value)} />
+                </label>
+                <label>
+                  Text color
+                  <input type="color" value={project.theme.text} onChange={(event) => updateThemeField('text', event.target.value)} />
+                </label>
+                <label>
+                  Surface color
+                  <input type="color" value={project.theme.surface} onChange={(event) => updateThemeField('surface', event.target.value)} />
+                </label>
+                <label>
+                  Radius: {project.theme.radius}px
+                  <input
+                    type="range"
+                    min="0"
+                    max="40"
+                    value={project.theme.radius}
+                    onChange={(event) => updateThemeField('radius', Number(event.target.value))}
+                  />
+                </label>
+                <label>
+                  Container width: {project.theme.containerWidth}px
+                  <input
+                    type="range"
+                    min="700"
+                    max="1400"
+                    step="20"
+                    value={project.theme.containerWidth}
+                    onChange={(event) => updateThemeField('containerWidth', Number(event.target.value))}
+                  />
+                </label>
+              </div>
 
               {activeSection && (
-                <>
+                <div className="panel-subsection">
+                  <h4>Section</h4>
                   <label>
                     Title
                     <input
@@ -765,8 +919,12 @@ function App() {
                       </div>
                     </>
                   )}
-                </>
+                </div>
               )}
+
+              <button className="secondary-btn" type="button" onClick={saveSelectedSectionAsBlock}>
+                Save as block
+              </button>
 
               <button className="danger-btn" type="button" onClick={removeSection}>
                 Remove section

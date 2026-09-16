@@ -27,7 +27,8 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
@@ -84,12 +85,29 @@ button {
   color: #64748b;
 }
 
-.panel-block h3 {
-  margin: 0 0 12px;
+.panel-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-block h3,
+.panel-subsection h4 {
+  margin: 0;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #475569;
+}
+
+.panel-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
 }
 
 .component-list,
@@ -271,6 +289,7 @@ button {
   border: 1px solid #e2e8f0;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
   padding: 30px 22px 20px;
+  transition: max-width 0.2s ease;
 }
 
 .canvas.desktop .canvas-inner {
@@ -502,7 +521,8 @@ button {
 }
 
 .inspector-form input,
-.inspector-form textarea {
+.inspector-form textarea,
+.inspector-form select {
   width: 100%;
   background: #f8fafc;
   border: 1px solid #dbeafe;
@@ -514,6 +534,10 @@ button {
 .inspector-form input[type='color'] {
   min-height: 44px;
   padding: 6px;
+}
+
+.inspector-form input[type='range'] {
+  padding: 0;
 }
 
 .mini-editor {
@@ -597,4 +621,3 @@ button {
     justify-content: center;
   }
 }
-

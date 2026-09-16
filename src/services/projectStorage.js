@@ -1,4 +1,4 @@
-import { normalizeProject } from './project.js'
+import { normalizeProject } from '../domain/project.js'
 
 const STORAGE_KEY = 'website-builder-project'
 

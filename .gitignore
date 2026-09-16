@@ -1,4 +1,59 @@
-node_modules
-dist
-.vite
+```
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+.env
+env/
+ENV/
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# Testing
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Archives
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.gz
+*.rar
+*.7z
+```

@@ -649,3 +649,276 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Theme Toggle Panel */
+.theme-mode-display {
+  padding: 12px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.mode-indicator {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.mode-indicator.light {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.mode-indicator.dark {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+.theme-toggle-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-btn.light {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1e293b;
+}
+
+.theme-toggle-btn.dark {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #f1f5f9;
+}
+
+.theme-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.panel-hint {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* Custom Font Panel */
+.uploaded-fonts-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.uploaded-font-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.uploaded-font-item:last-child {
+  border-bottom: none;
+}
+
+.font-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.font-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.font-format {
+  font-size: 11px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.font-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-small {
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-small.btn-primary {
+  background: #7c3aed;
+  color: white;
+}
+
+.btn-small.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.upload-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s;
+}
+
+.upload-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Custom CSS Panel */
+.scope-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.scope-tab {
+  flex: 1;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.scope-tab.active {
+  background: #7c3aed;
+  color: white;
+  border-color: #7c3aed;
+}
+
+.scope-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.css-editor {
+  width: 100%;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  resize: vertical;
+  background: #1e293b;
+  color: #f1f5f9;
+  min-height: 150px;
+}
+
+.css-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.css-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.css-actions .btn-primary {
+  background: #7c3aed;
+  color: white;
+}
+
+.css-actions .btn-secondary {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.css-examples {
+  display: grid;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.css-example-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.example-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.example-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.example-code {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 10px;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.css-tips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.css-tips li {
+  padding: 6px 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.css-tips code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  color: #7c3aed;
+}

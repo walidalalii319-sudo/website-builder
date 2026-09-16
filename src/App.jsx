@@ -34,6 +34,7 @@ export default function App() {
   const updatePage = (field, value) => commit({ ...project, pages: project.pages.map((item) => item.id === page.id ? { ...item, [field]: value } : item) })
   const updateTheme = (field, value) => commit({ ...project, theme: { ...project.theme, [field]: value } })
   const updateSection = (changes) => commit({ ...project, pages: project.pages.map((item) => item.id === page.id ? { ...item, sections: item.sections.map((entry) => entry.id === section.id ? { ...entry, ...changes } : entry) } : item) })
+  const updateSettings = (settings) => commit({ ...project, settings: { ...project.settings, ...settings } })
   
   const addSection = (type) => { 
     const next = createSection(type); 
@@ -165,7 +166,8 @@ export default function App() {
         onThemeChange={updateTheme} 
         onSectionChange={updateSection} 
         onSaveBlock={saveBlock} 
-        onRemoveSection={removeSection} 
+        onRemoveSection={removeSection}
+        onSettingsChange={updateSettings}
       />
     </div>
   )

@@ -1,0 +1,360 @@
+.grid-builder {
+  display: grid;
+  grid-template-columns: 280px 1fr 280px;
+  gap: 24px;
+  padding: 24px;
+  background: #f8fafc;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Controls Panel */
+.grid-controls {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.control-group {
+  margin-bottom: 16px;
+}
+
+.control-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.control-group input[type="number"],
+.control-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.control-group input[type="number"]:focus,
+.control-group select:focus {
+  outline: none;
+  border-color: var(--theme-accent, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.control-group span {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-buttons button {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-buttons button:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.toggle-buttons button.active {
+  background: var(--theme-accent, #6366f1);
+  color: white;
+  border-color: var(--theme-accent, #6366f1);
+}
+
+.add-cell-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--theme-accent, #6366f1);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.add-cell-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Preview Area */
+.grid-preview-area {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 500px;
+}
+
+.grid-preview-area h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.preview-hint {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.grid-canvas {
+  min-height: 400px;
+  padding: 20px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e1;
+  transition: all 0.3s;
+}
+
+.grid-cell {
+  position: relative;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: grab;
+  transition: all 0.2s;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-cell:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.grid-cell.selected {
+  border-color: var(--theme-accent, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.grid-cell.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.cell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cell-id {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.remove-cell {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.remove-cell:hover {
+  background: #fecaca;
+  transform: scale(1.1);
+}
+
+.cell-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.empty-grid-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #9ca3af;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Cell Properties Panel */
+.cell-properties {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.cell-properties h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #1f2937;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.clear-bg {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-bg:hover {
+  background: #e5e7eb;
+}
+
+/* Responsive Settings */
+.responsive-settings {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: auto;
+}
+
+.responsive-settings h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #1f2937;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.breakpoint-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.breakpoint-row span:first-child {
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.breakpoint-row input[type="number"] {
+  width: 60px;
+  padding: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.breakpoint-row span:last-child {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Scrollbar Styling */
+.grid-builder::-webkit-scrollbar {
+  width: 8px;
+}
+
+.grid-builder::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.grid-builder::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.grid-builder::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animations */
+@keyframes cellAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.grid-cell {
+  animation: cellAppear 0.2s ease-out;
+}
+
+/* Responsive Design for the Builder Itself */
+@media (max-width: 1200px) {
+  .grid-builder {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  
+  .grid-controls,
+  .cell-properties,
+  .responsive-settings {
+    max-height: none;
+  }
+}

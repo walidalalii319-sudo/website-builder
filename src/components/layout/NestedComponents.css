@@ -1,0 +1,350 @@
+/* Nested Components Container */
+.nested-components-container {
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.nested-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dfe6e9;
+}
+
+.nested-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.add-root-component {
+  padding: 6px 12px;
+  background: #0984e3;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-root-component:hover {
+  background: #0769b5;
+  transform: translateY(-1px);
+}
+
+.nested-tree-view {
+  padding: 8px 0;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #636e72;
+}
+
+.empty-state p {
+  margin: 8px 0;
+}
+
+.empty-state .hint {
+  font-size: 12px;
+  color: #b2bec3;
+}
+
+/* Nested Component Tree */
+.nested-component-tree {
+  margin: 0;
+}
+
+.nested-component-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+
+.nested-component-item:hover {
+  background: #f1f2f6;
+}
+
+.nested-component-item.selected {
+  background: #e3f2fd;
+  border-left-color: #0984e3;
+}
+
+.expand-toggle,
+.expand-placeholder {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #636e72;
+  background: #f1f2f6;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.expand-toggle:hover {
+  background: #dfe6e9;
+  color: #2d3436;
+}
+
+.expand-placeholder {
+  visibility: hidden;
+}
+
+.component-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.component-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2d3436;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.instance-badge {
+  font-size: 9px;
+  font-weight: 600;
+  color: #6c5ce7;
+  background: #e8e4fd;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.component-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nested-component-item:hover .component-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #0984e3;
+  color: #fff;
+  border-color: #0984e3;
+}
+
+.action-btn.delete:hover {
+  background: #ff7675;
+  border-color: #ff7675;
+}
+
+.nested-children {
+  border-left: 2px solid #dfe6e9;
+  margin-left: 16px;
+}
+
+/* Symbol Instance Styles */
+.symbol-instance {
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.instance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dfe6e9;
+}
+
+.instance-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.master-link {
+  font-size: 12px;
+  color: #636e72;
+  font-style: italic;
+}
+
+.instance-content {
+  padding: 16px;
+}
+
+.instance-preview {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 2px dashed #dfe6e9;
+}
+
+.instance-overrides {
+  padding: 16px;
+  border-top: 1px solid #dfe6e9;
+}
+
+.instance-overrides h4 {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3436;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.override-field {
+  margin-bottom: 12px;
+}
+
+.override-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #636e72;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.override-field input[type="text"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.override-field input[type="text"]:focus {
+  outline: none;
+  border-color: #0984e3;
+  box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.1);
+}
+
+.override-field input[type="color"] {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 4px;
+  background: #fff;
+}
+
+.detach-instance {
+  width: 100%;
+  padding: 10px;
+  background: #ff7675;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+}
+
+.detach-instance:hover {
+  background: #d63031;
+  transform: translateY(-1px);
+}
+
+/* Component Nesting Panel */
+.component-nesting-panel {
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* Level indicators */
+.level-0 { background: rgba(9, 132, 227, 0.05); }
+.level-1 { background: rgba(9, 132, 227, 0.08); }
+.level-2 { background: rgba(9, 132, 227, 0.11); }
+.level-3 { background: rgba(9, 132, 227, 0.14); }
+.level-4 { background: rgba(9, 132, 227, 0.17); }
+.level-5 { background: rgba(9, 132, 227, 0.20); }
+
+/* Drag and drop indicators for reordering */
+.nested-component-item.drag-over {
+  border-top: 2px solid #0984e3;
+}
+
+.nested-component-item.dragging {
+  opacity: 0.5;
+  background: #dfe6e9;
+}
+
+/* Collapse/Expand animations */
+.nested-children {
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar styling */
+.nested-tree-view::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nested-tree-view::-webkit-scrollbar-track {
+  background: #f1f2f6;
+}
+
+.nested-tree-view::-webkit-scrollbar-thumb {
+  background: #b2bec3;
+  border-radius: 3px;
+}
+
+.nested-tree-view::-webkit-scrollbar-thumb:hover {
+  background: #636e72;
+}

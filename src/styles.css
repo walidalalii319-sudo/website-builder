@@ -47,33 +47,108 @@ const sectionTemplates = {
   },
 }
 
-const starterSections = ['hero', 'features', 'pricing', 'cta', 'footer'].map((type, index) => ({
-  id: `${type}-${index}`,
-  ...sectionTemplates[type],
-}))
-
-const catalog = Object.keys(sectionTemplates)
 const clone = (value) => JSON.parse(JSON.stringify(value))
 const makeSection = (type) => ({
   id: `${type}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
   ...clone(sectionTemplates[type]),
 })
 
-const readSections = () => {
-  if (typeof window === 'undefined') return clone(starterSections)
-  try {
-    const raw = window.localStorage.getItem('website-builder-sections')
-    const parsed = raw ? JSON.parse(raw) : null
-    return Array.isArray(parsed) && parsed.length ? parsed : clone(starterSections)
-  } catch {
-    return clone(starterSections)
+const defaultSections = ['hero', 'features', 'pricing', 'cta', 'footer'].map((type, index) => ({
+  id: `${type}-${index}`,
+  ...clone(sectionTemplates[type]),
+}))
+
+const defaultProject = {
+  id: 'workspace-1',
+  name: 'Moonbrand Studio',
+  theme: {
+    accent: '#7c3aed',
+    background: '#f8fafc',
+  },
+  pages: [
+    {
+      id: 'home',
+      title: 'Home',
+      sections: clone(defaultSections),
+    },
+    {
+      id: 'about',
+      title: 'About',
+      sections: [{
+        id: 'about-1',
+        type: 'text',
+        title: 'Our story',
+        body: 'We help teams design faster, publish better, and ship smarter digital experiences.',
+      }],
+    },
+  ],
+}
+
+const normalizeProject = (value) => {
+  if (!value || typeof value !== 'object') return clone(defaultProject)
+
+  if (Array.isArray(value)) {
+    return {
+      ...clone(defaultProject),
+      pages: [{
+        id: 'home',
+        title: 'Home',
+        sections: value.map((section, index) => ({
+          id: section.id || `${section.type || 'section'}-${index}`,
+          ...section,
+        })),
+      }],
+    }
+  }
+
+  const pages = Array.isArray(value.pages) && value.pages.length
+    ? value.pages.map((page, index) => ({
+        id: page.id || `page-${index}`,
+        title: page.title || `Page ${index + 1}`,
+        sections: Array.isArray(page.sections) && page.sections.length
+          ? page.sections.map((section, sectionIndex) => ({
+              id: section.id || `${section.type || 'section'}-${sectionIndex}`,
+              ...section,
+            }))
+          : [makeSection('text')],
+      }))
+    : [{
+        id: 'home',
+        title: 'Home',
+        sections: clone(defaultSections),
+      }]
+
+  return {
+    id: value.id || 'workspace-1',
+    name: value.name || 'Moonbrand Studio',
+    theme: {
+      accent: value.theme?.accent || '#7c3aed',
+      background: value.theme?.background || '#f8fafc',
+    },
+    pages,
   }
 }
 
-function SectionRenderer({ section }) {
+const readProject = () => {
+  if (typeof window === 'undefined') return clone(defaultProject)
+
+  try {
+    const stored = window.localStorage.getItem('website-builder-project')
+    if (stored) return normalizeProject(JSON.parse(stored))
+
+    const legacy = window.localStorage.getItem('website-builder-sections')
+    if (legacy) return normalizeProject(JSON.parse(legacy))
+  } catch {
+    // ignore invalid local storage and fall back to defaults
+  }
+
+  return clone(defaultProject)
+}
+
+function SectionRenderer({ section, accent }) {
   if (section.type === 'hero') {
     return (
-      <section className="page-section hero-section" style={{ background: `linear-gradient(135deg, ${section.accent}22, #fff)` }}>
+      <section className="page-section hero-section" style={{ background: `linear-gradient(135deg, ${accent || '#7c3aed'}22, #ffffff)` }}>
         <div className="hero-copy">
           <span className="eyebrow">Website builder</span>
           <h1>{section.title}</h1>
@@ -86,7 +161,7 @@ function SectionRenderer({ section }) {
         <div className="hero-card">
           <div className="mini-window">
             <div className="window-header"><span /><span /><span /></div>
-            <div className="content-lines"><b style={{ background: section.accent }} /><b /><b /><b /></div>
+            <div className="content-lines"><b style={{ background: accent || '#7c3aed' }} /><b /><b /><b /></div>
           </div>
         </div>
       </section>
@@ -167,20 +242,50 @@ function SectionRenderer({ section }) {
 }
 
 function App() {
-  const [sections, setSections] = useState(() => readSections())
-  const [activeId, setActiveId] = useState(() => readSections()[0]?.id || 'hero-0')
+  const [project, setProject] = useState(() => readProject())
+  const [activePageId, setActivePageId] = useState('')
+  const [activeSectionId, setActiveSectionId] = useState('')
   const [viewport, setViewport] = useState('desktop')
   const [draggedId, setDraggedId] = useState(null)
   const [history, setHistory] = useState([])
   const [future, setFuture] = useState([])
   const [notice, setNotice] = useState('All changes saved locally')
 
-  const active = useMemo(() => sections.find((item) => item.id === activeId) || sections[0], [sections, activeId])
-  const json = useMemo(() => JSON.stringify(sections, null, 2), [sections])
+  useEffect(() => {
+    if (!project.pages.length) {
+      setProject((prev) => ({ ...prev, pages: [{ id: 'home', title: 'Home', sections: [makeSection('text')] }] }))
+      return
+    }
+
+    if (!project.pages.some((page) => page.id === activePageId)) {
+      setActivePageId(project.pages[0].id)
+    }
+  }, [project, activePageId])
+
+  const activePage = useMemo(
+    () => project.pages.find((page) => page.id === activePageId) || project.pages[0],
+    [project.pages, activePageId],
+  )
 
   useEffect(() => {
-    window.localStorage.setItem('website-builder-sections', json)
-  }, [json])
+    if (!activePage) return
+    if (!activePage.sections.some((section) => section.id === activeSectionId)) {
+      setActiveSectionId(activePage.sections[0]?.id || '')
+    }
+  }, [activePage, activeSectionId])
+
+  const activeSection = useMemo(
+    () => activePage?.sections.find((section) => section.id === activeSectionId) || activePage?.sections[0],
+    [activePage, activeSectionId],
+  )
+
+  const projectJson = useMemo(() => JSON.stringify(project, null, 2), [project])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('website-builder-project', JSON.stringify(project))
+    }
+  }, [project])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -198,52 +303,125 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   })
 
-  const commit = (next) => {
-    setHistory((items) => [...items.slice(-29), clone(sections)])
+  const updateProjectWithHistory = (nextProject, msg) => {
+    setHistory((items) => [...items.slice(-29), clone(project)])
     setFuture([])
-    setSections(next)
-    setNotice('Unsaved changes')
+    setProject(nextProject)
+    setNotice(msg)
   }
 
-  const updateActive = (changes) => {
-    commit(sections.map((item) => (item.id === activeId ? { ...item, ...changes } : item)))
+  const updateActivePage = (updater, msg = 'Updated page') => {
+    if (!activePage) return
+    const nextProject = {
+      ...project,
+      pages: project.pages.map((page) => page.id === activePage.id ? updater(page) : page),
+    }
+    updateProjectWithHistory(nextProject, msg)
   }
 
   const addSection = (type) => {
-    const nextItem = makeSection(type)
-    commit([...sections, nextItem])
-    setActiveId(nextItem.id)
+    const newSection = makeSection(type)
+    updateActivePage((page) => ({
+      ...page,
+      sections: [...page.sections, newSection],
+    }), 'Section added')
+    setActiveSectionId(newSection.id)
   }
 
   const removeSection = () => {
-    if (sections.length <= 1) return
-    const next = sections.filter((item) => item.id !== activeId)
-    commit(next)
-    setActiveId(next[0].id)
+    if (!activePage || activePage.sections.length <= 1) return
+    const nextSections = activePage.sections.filter((section) => section.id !== activeSectionId)
+    updateActivePage((page) => ({ ...page, sections: nextSections }), 'Section removed')
+    setActiveSectionId(nextSections[0]?.id || '')
   }
 
   const reorderSections = (fromId, toId) => {
-    if (!fromId || !toId || fromId === toId) return
+    if (!activePage || !fromId || !toId || fromId === toId) return
 
-    setHistory((items) => [...items.slice(-29), clone(sections)])
+    const nextProject = {
+      ...project,
+      pages: project.pages.map((page) => {
+        if (page.id !== activePage.id) return page
+        const items = [...page.sections]
+        const fromIndex = items.findIndex((section) => section.id === fromId)
+        const toIndex = items.findIndex((section) => section.id === toId)
+        if (fromIndex === -1 || toIndex === -1) return page
+        const [moved] = items.splice(fromIndex, 1)
+        items.splice(toIndex, 0, moved)
+        return { ...page, sections: items }
+      }),
+    }
+
+    updateProjectWithHistory(nextProject, 'Section order updated')
+  }
+
+  const addPage = () => {
+    const newPage = {
+      id: `page-${Date.now()}`,
+      title: `Page ${project.pages.length + 1}`,
+      sections: [makeSection('text')],
+    }
+
+    const nextProject = {
+      ...project,
+      pages: [...project.pages, newPage],
+    }
+
+    updateProjectWithHistory(nextProject, 'New page created')
+    setActivePageId(newPage.id)
+    setActiveSectionId(newPage.sections[0].id)
+  }
+
+  const updatePageTitle = (value) => {
+    if (!activePage) return
+    updateActivePage((page) => ({ ...page, title: value || 'Untitled page' }), 'Page renamed')
+  }
+
+  const updateTheme = (changes) => {
+    setHistory((items) => [...items.slice(-29), clone(project)])
     setFuture([])
-    setSections((current) => {
-      const next = [...current]
-      const fromIndex = next.findIndex((item) => item.id === fromId)
-      const toIndex = next.findIndex((item) => item.id === toId)
-      if (fromIndex === -1 || toIndex === -1) return current
-      const [moved] = next.splice(fromIndex, 1)
-      next.splice(toIndex, 0, moved)
-      return next
-    })
-    setNotice('Section order updated')
+    setProject((prev) => ({ ...prev, theme: { ...prev.theme, ...changes } }))
+    setNotice('Theme updated')
+  }
+
+  const updateActiveSection = (changes) => {
+    if (!activePage) return
+    const nextProject = {
+      ...project,
+      pages: project.pages.map((page) => {
+        if (page.id !== activePage.id) return page
+        return {
+          ...page,
+          sections: page.sections.map((section) =>
+            section.id === activeSectionId ? { ...section, ...changes } : section,
+          ),
+        }
+      }),
+    }
+    updateProjectWithHistory(nextProject, 'Section updated')
+  }
+
+  const updateFeatureItem = (index, field, value) => {
+    if (activeSection?.type !== 'features') return
+    const nextItems = activeSection.items.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, [field]: value } : item,
+    )
+    updateActiveSection({ items: nextItems })
+  }
+
+  const updatePlanItem = (index, field, value) => {
+    if (activeSection?.type !== 'pricing') return
+    const nextPlans = activeSection.plans.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, [field]: value } : item,
+    )
+    updateActiveSection({ plans: nextPlans })
   }
 
   const undo = () => {
     if (!history.length) return
     const previous = history[history.length - 1]
-    setFuture((items) => [clone(sections), ...items])
-    setSections(previous)
+    setFuture((items) => [clone(project), ...items])
+    setProject(previous)
     setHistory((items) => items.slice(0, -1))
     setNotice('Undid last change')
   }
@@ -251,26 +429,21 @@ function App() {
   const redo = () => {
     if (!future.length) return
     const next = future[0]
-    setHistory((items) => [...items, clone(sections)])
-    setSections(next)
+    setHistory((items) => [...items, clone(project)])
+    setProject(next)
     setFuture((items) => items.slice(1))
     setNotice('Redid change')
   }
 
-  const resetProject = () => {
-    const starter = clone(starterSections)
-    commit(starter)
-    setActiveId(starter[0].id)
-    setNotice('Starter template restored')
-  }
-
   const saveProject = () => {
-    window.localStorage.setItem('website-builder-sections', json)
-    setNotice('Project saved locally')
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('website-builder-project', JSON.stringify(project))
+      setNotice('Project saved locally')
+    }
   }
 
   const exportProject = () => {
-    const blob = new Blob([json], { type: 'application/json' })
+    const blob = new Blob([projectJson], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -288,34 +461,17 @@ function App() {
     reader.onload = () => {
       try {
         const parsed = JSON.parse(String(reader.result))
-        if (!Array.isArray(parsed) || !parsed.length) throw new Error('Invalid import')
-        commit(parsed)
-        setActiveId(parsed[0].id)
-        setNotice('Project imported')
+        const normalized = normalizeProject(parsed)
+        const nextProject = { ...normalized, pages: normalized.pages }
+        updateProjectWithHistory(nextProject, 'Project imported')
+        setActivePageId(nextProject.pages[0]?.id || '')
+        setActiveSectionId(nextProject.pages[0]?.sections[0]?.id || '')
       } catch {
         setNotice('Invalid project file')
       }
     }
     reader.readAsText(file)
     event.target.value = ''
-  }
-
-  const updateFeatureItem = (index, field, value) => {
-    if (active?.type !== 'features') return
-    updateActive({
-      items: active.items.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, [field]: value } : item,
-      ),
-    })
-  }
-
-  const updatePlanItem = (index, field, value) => {
-    if (active?.type !== 'pricing') return
-    updateActive({
-      plans: active.plans.map((plan, planIndex) =>
-        planIndex === index ? { ...plan, [field]: value } : plan,
-      ),
-    })
   }
 
   return (
@@ -325,15 +481,31 @@ function App() {
           <div className="brand">
             <div className="brand-mark">W</div>
             <div>
-              <strong>Website Builder</strong>
+              <strong>{project.name}</strong>
               <small>Design studio</small>
+            </div>
+          </div>
+
+          <div className="panel-block">
+            <h3>Pages</h3>
+            <div className="page-tabs">
+              {project.pages.map((page) => (
+                <button
+                  key={page.id}
+                  className={page.id === activePageId ? 'page-tab active' : 'page-tab'}
+                  onClick={() => setActivePageId(page.id)}
+                >
+                  {page.title}
+                </button>
+              ))}
+              <button className="component-button" onClick={addPage}>+ New page</button>
             </div>
           </div>
 
           <div className="panel-block">
             <h3>Components</h3>
             <div className="component-list">
-              {catalog.map((type) => (
+              {Object.keys(sectionTemplates).map((type) => (
                 <button className="component-button" key={type} onClick={() => addSection(type)}>
                   + {type}
                 </button>
@@ -343,7 +515,7 @@ function App() {
 
           <div className="panel-block project-tools">
             <h3>Project</h3>
-            <button className="component-button" onClick={resetProject}>↻ Reset template</button>
+            <button className="component-button" onClick={() => updateProjectWithHistory(clone(defaultProject), 'Starter template restored')}>↻ Reset template</button>
             <button className="component-button" onClick={exportProject}>↓ Export JSON</button>
             <label className="component-button file-button">
               ↑ Import JSON
@@ -355,27 +527,27 @@ function App() {
         <div className="panel-block">
           <h3>Structure</h3>
           <div className="section-list">
-            {sections.map((item) => (
+            {activePage?.sections.map((section) => (
               <button
-                key={item.id}
+                key={section.id}
                 draggable
                 onDragStart={(event) => {
                   event.dataTransfer.effectAllowed = 'move'
-                  setDraggedId(item.id)
+                  setDraggedId(section.id)
                 }}
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={(event) => {
                   event.preventDefault()
                   if (draggedId) {
-                    reorderSections(draggedId, item.id)
+                    reorderSections(draggedId, section.id)
                     setDraggedId(null)
                   }
                 }}
-                className={`section-item ${item.id === activeId ? 'active' : ''}`}
-                onClick={() => setActiveId(item.id)}
+                className={`section-item ${section.id === activeSectionId ? 'active' : ''}`}
+                onClick={() => setActiveSectionId(section.id)}
               >
                 <span className="dot" />
-                {item.type}
+                {section.type}
               </button>
             ))}
           </div>
@@ -406,27 +578,27 @@ function App() {
         </header>
 
         <div className={`canvas ${viewport}`}>
-          <div className="canvas-inner">
-            {sections.map((item) => (
+          <div className="canvas-inner" style={{ background: project.theme.background }}>
+            {activePage?.sections.map((section) => (
               <div
-                key={item.id}
+                key={section.id}
                 draggable
                 onDragStart={(event) => {
                   event.dataTransfer.effectAllowed = 'move'
-                  setDraggedId(item.id)
+                  setDraggedId(section.id)
                 }}
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={(event) => {
                   event.preventDefault()
                   if (draggedId) {
-                    reorderSections(draggedId, item.id)
+                    reorderSections(draggedId, section.id)
                     setDraggedId(null)
                   }
                 }}
-                className={item.id === activeId ? 'selected-section' : ''}
-                onClick={() => setActiveId(item.id)}
+                className={section.id === activeSectionId ? 'selected-section' : ''}
+                onClick={() => setActiveSectionId(section.id)}
               >
-                <SectionRenderer section={item} />
+                <SectionRenderer section={section} accent={project.theme.accent} />
               </div>
             ))}
           </div>
@@ -435,157 +607,164 @@ function App() {
 
       <aside className="sidebar right-sidebar">
         <div className="panel-block">
-          <h3>
-            Inspector <span className="muted">/{active?.type}</span>
-          </h3>
+          <h3>Inspector <span className="muted">/{activeSection?.type || activePage?.title}</span></h3>
 
-          {active && (
+          {activePage && (
             <div className="inspector-form">
               <label>
-                Title
+                Page name
+                <input value={activePage.title} onChange={(event) => updatePageTitle(event.target.value)} />
+              </label>
+
+              <label>
+                Accent color
                 <input
-                  value={active.title || ''}
-                  onChange={(event) => updateActive({ title: event.target.value })}
+                  type="color"
+                  value={project.theme.accent}
+                  onChange={(event) => updateTheme({ accent: event.target.value })}
                 />
               </label>
 
-              {['hero', 'cta'].includes(active.type) && (
-                <label>
-                  Subtitle
-                  <textarea
-                    rows="3"
-                    value={active.subtitle || ''}
-                    onChange={(event) => updateActive({ subtitle: event.target.value })}
-                  />
-                </label>
-              )}
-
-              {active.type === 'text' && (
-                <label>
-                  Body
-                  <textarea
-                    rows="5"
-                    value={active.body || ''}
-                    onChange={(event) => updateActive({ body: event.target.value })}
-                  />
-                </label>
-              )}
-
-              {active.type === 'hero' && (
-                <label>
-                  Accent color
-                  <input
-                    type="color"
-                    value={active.accent || '#7c3aed'}
-                    onChange={(event) => updateActive({ accent: event.target.value })}
-                  />
-                </label>
-              )}
-
-              {active.type === 'features' && (
+              {activeSection && (
                 <>
-                  <div className="editor-stack">
-                    {(active.items || []).map((item, index) => (
-                      <div className="mini-editor" key={`${item.name}-${index}`}>
-                        <label>
-                          Feature {index + 1} name
-                          <input
-                            value={item.name}
-                            onChange={(event) => updateFeatureItem(index, 'name', event.target.value)}
-                          />
-                        </label>
-                        <label>
-                          Description
-                          <textarea
-                            rows="2"
-                            value={item.desc}
-                            onChange={(event) => updateFeatureItem(index, 'desc', event.target.value)}
-                          />
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="editor-actions">
-                    <button
-                      className="secondary-btn"
-                      type="button"
-                      onClick={() =>
-                        updateActive({
-                          items: [...(active.items || []), { name: `Feature ${((active.items || []).length || 0) + 1}`, desc: 'Describe this feature for your visitors.' }],
-                        })
-                      }
-                    >
-                      Add feature
-                    </button>
-                    <button
-                      className="danger-btn"
-                      type="button"
-                      onClick={() =>
-                        updateActive({
-                          items: (active.items || []).slice(0, -1),
-                        })
-                      }
-                    >
-                      Remove last
-                    </button>
-                  </div>
-                </>
-              )}
+                  <label>
+                    Title
+                    <input
+                      value={activeSection.title || ''}
+                      onChange={(event) => updateActiveSection({ title: event.target.value })}
+                    />
+                  </label>
 
-              {active.type === 'pricing' && (
-                <>
-                  <div className="editor-stack">
-                    {(active.plans || []).map((plan, index) => (
-                      <div className="mini-editor" key={`${plan.name}-${index}`}>
-                        <label>
-                          Plan {index + 1} name
-                          <input
-                            value={plan.name}
-                            onChange={(event) => updatePlanItem(index, 'name', event.target.value)}
-                          />
-                        </label>
-                        <label>
-                          Price
-                          <input
-                            value={plan.price}
-                            onChange={(event) => updatePlanItem(index, 'price', event.target.value)}
-                          />
-                        </label>
-                        <label>
-                          Description
-                          <textarea
-                            rows="2"
-                            value={plan.desc}
-                            onChange={(event) => updatePlanItem(index, 'desc', event.target.value)}
-                          />
-                        </label>
+                  {['hero', 'cta'].includes(activeSection.type) && (
+                    <label>
+                      Subtitle
+                      <textarea
+                        rows="3"
+                        value={activeSection.subtitle || ''}
+                        onChange={(event) => updateActiveSection({ subtitle: event.target.value })}
+                      />
+                    </label>
+                  )}
+
+                  {activeSection.type === 'text' && (
+                    <label>
+                      Body
+                      <textarea
+                        rows="5"
+                        value={activeSection.body || ''}
+                        onChange={(event) => updateActiveSection({ body: event.target.value })}
+                      />
+                    </label>
+                  )}
+
+                  {activeSection.type === 'hero' && (
+                    <label>
+                      CTA text
+                      <input
+                        value={activeSection.cta || ''}
+                        onChange={(event) => updateActiveSection({ cta: event.target.value })}
+                      />
+                    </label>
+                  )}
+
+                  {activeSection.type === 'features' && (
+                    <>
+                      <div className="editor-stack">
+                        {(activeSection.items || []).map((item, index) => (
+                          <div className="mini-editor" key={`${item.name}-${index}`}>
+                            <label>
+                              Feature {index + 1} name
+                              <input
+                                value={item.name}
+                                onChange={(event) => updateFeatureItem(index, 'name', event.target.value)}
+                              />
+                            </label>
+                            <label>
+                              Description
+                              <textarea
+                                rows="2"
+                                value={item.desc}
+                                onChange={(event) => updateFeatureItem(index, 'desc', event.target.value)}
+                              />
+                            </label>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div className="editor-actions">
-                    <button
-                      className="secondary-btn"
-                      type="button"
-                      onClick={() =>
-                        updateActive({
-                          plans: [...(active.plans || []), { name: `Plan ${(active.plans || []).length + 1}`, price: '$99', desc: 'Add a description for this plan.' }],
-                        })
-                      }
-                    >
-                      Add plan
-                    </button>
-                    <button
-                      className="danger-btn"
-                      type="button"
-                      onClick={() =>
-                        updateActive({
-                          plans: (active.plans || []).slice(0, -1),
-                        })
-                      }
-                    >
-                      Remove last
-                    </button>
-                  </div>
+                      <div className="editor-actions">
+                        <button
+                          className="secondary-btn"
+                          type="button"
+                          onClick={() =>
+                            updateActiveSection({
+                              items: [...(activeSection.items || []), { name: `Feature ${(activeSection.items || []).length + 1}`, desc: 'Describe this feature for your visitors.' }],
+                            })
+                          }
+                        >
+                          Add feature
+                        </button>
+                        <button
+                          className="danger-btn"
+                          type="button"
+                          onClick={() => updateActiveSection({ items: (activeSection.items || []).slice(0, -1) })}
+                        >
+                          Remove last
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {activeSection.type === 'pricing' && (
+                    <>
+                      <div className="editor-stack">
+                        {(activeSection.plans || []).map((plan, index) => (
+                          <div className="mini-editor" key={`${plan.name}-${index}`}>
+                            <label>
+                              Plan {index + 1} name
+                              <input
+                                value={plan.name}
+                                onChange={(event) => updatePlanItem(index, 'name', event.target.value)}
+                              />
+                            </label>
+                            <label>
+                              Price
+                              <input
+                                value={plan.price}
+                                onChange={(event) => updatePlanItem(index, 'price', event.target.value)}
+                              />
+                            </label>
+                            <label>
+                              Description
+                              <textarea
+                                rows="2"
+                                value={plan.desc}
+                                onChange={(event) => updatePlanItem(index, 'desc', event.target.value)}
+                              />
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="editor-actions">
+                        <button
+                          className="secondary-btn"
+                          type="button"
+                          onClick={() =>
+                            updateActiveSection({
+                              plans: [...(activeSection.plans || []), { name: `Plan ${(activeSection.plans || []).length + 1}`, price: '$99', desc: 'Add a description for this plan.' }],
+                            })
+                          }
+                        >
+                          Add plan
+                        </button>
+                        <button
+                          className="danger-btn"
+                          type="button"
+                          onClick={() => updateActiveSection({ plans: (activeSection.plans || []).slice(0, -1) })}
+                        >
+                          Remove last
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
 
@@ -598,7 +777,7 @@ function App() {
 
         <div className="panel-block">
           <h3>Generated JSON</h3>
-          <pre className="code-block">{json}</pre>
+          <pre className="code-block">{projectJson}</pre>
         </div>
       </aside>
     </div>
@@ -610,4 +789,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
-

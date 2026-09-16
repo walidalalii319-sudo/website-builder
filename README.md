@@ -96,7 +96,8 @@ button {
 .section-list,
 .inspector-form,
 .editor-stack,
-.editor-actions {
+.editor-actions,
+.page-tabs {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -108,14 +109,16 @@ button {
 .primary-btn,
 .secondary-btn,
 .danger-btn,
-.history-btn {
+.history-btn,
+.page-tab {
   border: 0;
   border-radius: 12px;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .component-button,
-.section-item {
+.section-item,
+.page-tab {
   width: 100%;
   text-align: left;
   background: #f8fafc;
@@ -126,6 +129,7 @@ button {
 
 .component-button:hover,
 .section-item:hover,
+.page-tab:hover,
 .viewport-controls button:hover,
 .primary-btn:hover,
 .secondary-btn:hover,
@@ -134,13 +138,15 @@ button {
   transform: translateY(-1px);
 }
 
-.section-item {
+.section-item,
+.page-tab {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.section-item.active {
+.section-item.active,
+.page-tab.active {
   background: #ede9fe;
   color: #5b21b6;
 }
@@ -591,3 +597,4 @@ button {
     justify-content: center;
   }
 }
+
